@@ -4,7 +4,7 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "make re",
+            "command": "make re && make run_server && make run_client",
             "group": {
                 "kind": "build",
                 "isDefault": true

@@ -6,7 +6,7 @@
 #    By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/03 14:56:36 by phartman          #+#    #+#              #
-#    Updated: 2024/07/03 16:59:58 by phartman         ###   ########.fr        #
+#    Updated: 2024/07/03 19:39:05 by phartman         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,11 +24,15 @@ LIBFT = ./ft_printf/libftprintf.a
 
 CLIENT_OBJS := $(CLIENT_SRCS:.c=.o)
 
-SERVER_SRCS := $(SERVER_SRCS:.c=.o)
+SERVER_OBJS := $(SERVER_SRCS:.c=.o)
 
 client = client
 
 server = server
+
+PID_FILE = pid.txt
+
+all: client server $(LIBFT) 
 
 client: $(CLIENT_OBJS) $(LIBFT) 
 	@$(CC) $(CFLAGS) $(CLIENT_OBJS) $(LIBFT) -o $(client) 
@@ -36,16 +40,16 @@ client: $(CLIENT_OBJS) $(LIBFT)
 server: $(SERVER_OBJS) $(LIBFT)
 	@$(CC) $(CFLAGS) $(SERVER_OBJS) $(LIBFT) -o $(server)
  
-all: client server $(LIBFT) 
-
 
 $(LIBFT):
 	@make -C ./ft_printf
 
 run_server: ./server
+	@./server & echo $$! > $(PID_FILE)
 
-run_client: ./client 
- 
+run_client: ./client $(PID_FILE)
+	@./client `cat $(PID_FILE)`
+	
 clean:
 	@rm -f $(OBJS)
 	@make clean -C ./ft_printf

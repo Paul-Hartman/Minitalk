@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
+/*   By: phartman <phartman@strudent.42berlin.de    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 14:47:40 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/03 19:28:53 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/10 00:08:13 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,35 +36,45 @@ unsigned char	*char_to_binary(char c)
 	return (bin);
 }
 
-void signal_handler(int signum)
+void send_binary_as_signal(int pid, unsigned char *binary)
 {
-	ft_printf("signal received: %d\n", signum);
+	int	i;
+
+	i = 0;
+	while(binary[i])
+	{
+		if (binary[i] == '0')
+			kill(pid, SIGUSR1);
+		else
+			kill(pid, SIGUSR2);
+		i++;
+		usleep(100000);
+	}
+
 }
+
 
 int	main(int argc, char const *argv[])
 {
 	int pid;
 	const char *msg;
 	int result;
+	char *binary;
 
-	struct sigaction action;
-
-	pid = getpid();
-	action.sa_handler = signal_handler;
-	sigemptyset(&action.sa_mask);
-
-	result = sigaction(SIGUSR1, &action, NULL);
-	printf("result: %d\n", result);
 	if (argc != 3)
 	{
-		msg = argv[0];
-		ft_printf("%s\n", char_to_binary('O'));
-		
+		ft_printf("wrogn number of args\n");
+		return 1;
 	}
-	kill(pid, SIGUSR1);
+	pid = ft_atoi(argv[1]);
+	msg = argv[2];
 
-	
-	//pid = ft_atoi(argv[1]);
-	//msg = argv[2];
+	while(msg)
+	{	
+		binary = char_to_binary(*msg);
+		send_binary_as_signal(pid, binary);
+		msg++;
+		free(binary);
+	}
 	return (0);
 }

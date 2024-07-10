@@ -6,58 +6,63 @@
 #    By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/03 14:56:36 by phartman          #+#    #+#              #
-#    Updated: 2024/07/03 19:39:05 by phartman         ###   ########.fr        #
+#    Updated: 2024/07/10 19:05:01 by phartman         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-
 CC := cc
+CFLAGS := -Wall -Wextra -Werror
 
-CFLAGS := -Wall -Wextra -Werror -g
+CLIENT_SRCS := client.c
+SERVER_SRCS := server.c
+CLIENT_SRCS_BONUS := bonus/client_bonus.c
+SERVER_SRCS_BONUS := bonus/server_bonus.c
+HEADERS := minitalk.h
 
-
-CLIENT_SRCS := client.c\
-		
-SERVER_SRCS := server.c\
-
-LIBFT = ./ft_printf/libftprintf.a
-
+LIBFT := ./ft_printf/libftprintf.a
 CLIENT_OBJS := $(CLIENT_SRCS:.c=.o)
-
 SERVER_OBJS := $(SERVER_SRCS:.c=.o)
+CLIENT_OBJS_BONUS := $(CLIENT_SRCS_BONUS:.c=.o)
+SERVER_OBJS_BONUS := $(SERVER_SRCS_BONUS:.c=.o)
 
-client = client
 
-server = server
+CLIENT := client
+SERVER := server
+CLIENT_BONUS := client_bonus
+SERVER_BONUS := server_bonus
 
-PID_FILE = pid.txt
+all: $(CLIENT) $(SERVER)
 
-all: client server $(LIBFT) 
 
-client: $(CLIENT_OBJS) $(LIBFT) 
-	@$(CC) $(CFLAGS) $(CLIENT_OBJS) $(LIBFT) -o $(client) 
 
-server: $(SERVER_OBJS) $(LIBFT)
-	@$(CC) $(CFLAGS) $(SERVER_OBJS) $(LIBFT) -o $(server)
- 
+$(CLIENT): $(CLIENT_OBJS) $(LIBFT)
+	$(CC) $(CFLAGS) $^ -o $@ -L./ft_printf -lftprintf
+
+$(SERVER): $(SERVER_OBJS) $(LIBFT)
+	$(CC) $(CFLAGS) $^ -o $@ -L./ft_printf -lftprintf
+
+$(CLIENT_BONUS): $(CLIENT_OBJS_BONUS) $(LIBFT)
+	$(CC) $(CFLAGS) $^ -o $@ -L./ft_printf -lftprintf
+
+$(SERVER_BONUS): $(SERVER_OBJS_BONUS) $(LIBFT)
+	$(CC) $(CFLAGS) $^ -o $@ -L./ft_printf -lftprintf
+
+%.o: %.c $(HEADERS)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(LIBFT):
-	@make -C ./ft_printf
+	$(MAKE) -C ./ft_printf
 
-run_server: ./server
-	@./server & echo $$! > $(PID_FILE)
-
-run_client: ./client $(PID_FILE)
-	@./client `cat $(PID_FILE)`
-	
 clean:
-	@rm -f $(OBJS)
-	@make clean -C ./ft_printf
-	
+	rm -f $(CLIENT_OBJS) $(SERVER_OBJS) $(CLIENT_OBJS_BONUS) $(SERVER_OBJS_BONUS)
+	$(MAKE) clean -C ./ft_printf
+
 fclean: clean
-	@make fclean -C ./ft_printf
-	@rm -f $(client) $(server)
+	rm -f $(CLIENT) $(SERVER) $(CLIENT_BONUS) $(SERVER_BONUS)
+	$(MAKE) fclean -C ./ft_printf
 
 re: fclean all
 
-.PHONY: all clean fclean re server client run_server run_client
+bonus: $(CLIENT_BONUS) $(SERVER_BONUS)
+
+.PHONY: all clean fclean re bonus

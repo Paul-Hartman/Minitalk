@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   client.c                                           :+:      :+:    :+:   */
+/*   client_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/03 14:47:40 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/10 17:46:26 by phartman         ###   ########.fr       */
+/*   Created: 2024/07/10 18:25:26 by phartman          #+#    #+#             */
+/*   Updated: 2024/07/10 19:13:03 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minitalk.h"
+#include "../minitalk.h"
 
 int send_signal(int pid, unsigned char c)
 {
@@ -35,18 +35,31 @@ int send_signal(int pid, unsigned char c)
 	return (0);
 }
 
+void recieve_signal(int signum)
+{
+	if(signum == SIGUSR1)
+		ft_printf("Received 1\n");
+	else if(signum == SIGUSR2)
+		ft_printf("Recieved 0\n");
+}
+
+
 int	main(int argc, char const *argv[])
 {
 	int server_pid;
 	const char *msg;
 	int i;
 	int valid;
-
+	struct sigaction sa;
+	sa.sa_handler = recieve_signal;
+	sa.sa_flags = 0;
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
 	i = 0;
 
 	if (argc != 3)
 	{
-		ft_printf("wrogn number of args\n");
+		ft_printf("wrong number of args\n");
 		return 1;
 	}
 	server_pid = ft_atoi(argv[1]);

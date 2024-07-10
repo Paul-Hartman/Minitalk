@@ -1,31 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   server.c                                           :+:      :+:    :+:   */
+/*   server_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/03 16:48:17 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/10 19:11:57 by phartman         ###   ########.fr       */
+/*   Created: 2024/07/10 18:27:55 by phartman          #+#    #+#             */
+/*   Updated: 2024/07/10 19:14:23 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minitalk.h"
+#include "../minitalk.h"
 
-void signal_handler(int signum)
+void signal_handler(int signum, siginfo_t *info, void *context)
 {
 	static int bits_received;
 	static unsigned char character;
-
+	(void)context;
 	if (signum == SIGUSR1)
 	{
 		character <<= 1;
 		character |= 1;
+		kill(info->si_pid, SIGUSR1);
 	}
 	else if (signum == SIGUSR2)
+	{
 		character <<= 1;
+		kill(info->si_pid, SIGUSR2);
+	}
 
-	
+
 
 	bits_received++;
 	if (bits_received == 8)
@@ -49,8 +53,8 @@ int main(void)
 {
 	struct sigaction sa;
 	ft_printf("%d\n", getpid());
-	sa.sa_handler = signal_handler;
-	sa.sa_flags = 0;
+	sa.sa_sigaction = signal_handler;
+	sa.sa_flags = SA_SIGINFO;
     sigemptyset(&sa.sa_mask);
 
 	sigaction(SIGUSR2, &sa, NULL);

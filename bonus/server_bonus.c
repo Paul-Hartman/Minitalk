@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 18:27:55 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/10 19:14:23 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/10 20:15:36 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,19 +16,24 @@ void signal_handler(int signum, siginfo_t *info, void *context)
 {
 	static int bits_received;
 	static unsigned char character;
+	int valid;
 	(void)context;
 	if (signum == SIGUSR1)
 	{
 		character <<= 1;
 		character |= 1;
-		kill(info->si_pid, SIGUSR1);
+		valid = kill(info->si_pid, SIGUSR1);
 	}
 	else if (signum == SIGUSR2)
 	{
 		character <<= 1;
-		kill(info->si_pid, SIGUSR2);
+		valid = kill(info->si_pid, SIGUSR2);
 	}
-
+	if(valid == -1)
+	{
+		ft_printf("Error sending signal\n");
+		exit(1);
+	}
 
 
 	bits_received++;
@@ -46,7 +51,7 @@ void signal_handler(int signum, siginfo_t *info, void *context)
 		bits_received = 0;
 		character = 0;
 	}
-		
+	
 }
 
 int main(void)

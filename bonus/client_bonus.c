@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 18:25:26 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/10 21:11:13 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/15 22:08:30 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,16 +32,24 @@ int send_signal(int pid, unsigned char c)
 
 		bit = (c >> i) & 1;
 		if(bit == 1)
-			valid = kill(pid, SIGUSR1);
+		{
+			kill(pid, SIGUSR1);
+
+		}
+			
 		else if (bit == 0)
-			valid = kill(pid, SIGUSR2);
-		
-		while(!signal_received && timeout < 400)
+		{
+			kill(pid, SIGUSR2);
+		}
+
+	
+		while(!signal_received && timeout <= 600)
 		{
 			usleep(100);
 			timeout += 100;
 		}
-		if(valid == -1 || timeout >= 400)
+
+		if(!signal_received || valid == -1 || timeout > 600)
 		{
 			ft_printf("Error sending signal\n");
 			exit(1);
@@ -53,11 +61,11 @@ int send_signal(int pid, unsigned char c)
 
 void recieve_signal(int signum)
 {
-	
 	if(signum == SIGUSR1)
 	{
 		ft_printf("1");
 		signal_received = 1;
+		
 		return;
 	}
 
@@ -65,6 +73,7 @@ void recieve_signal(int signum)
 	{
 		ft_printf("0");
 		signal_received = 1;
+
 		return;
 	}
 	signal_received = 0;

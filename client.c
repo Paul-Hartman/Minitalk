@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 14:47:40 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/10 21:04:56 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/15 19:28:16 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ int send_signal(int pid, unsigned char c)
 			valid = kill(pid, SIGUSR1);
 		else if (bit == 0)
 			valid = kill(pid, SIGUSR2);
-		usleep(100);
+		usleep(200);
 		if(valid == -1)
 		{
 			ft_printf("Error sending signal\n");
@@ -48,7 +48,7 @@ int	main(int argc, char const *argv[])
 
 	if (argc != 3)
 	{
-		ft_printf("wrogn number of args\n");
+		ft_printf("wrong number of args\n");
 		return 1;
 	}
 	server_pid = ft_atoi(argv[1]);

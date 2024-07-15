@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 16:48:17 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/10 19:11:57 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/15 16:33:15 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 
 void signal_handler(int signum)
 {
-	static int bits_received;
-	static unsigned char character;
+	static int bits_received = 0;
+	static unsigned char character =0;
 
 	if (signum == SIGUSR1)
 	{

@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 18:25:26 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/15 22:08:30 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/16 17:31:39 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,9 @@ int	main(int argc, char const *argv[])
 	int valid;
 	struct sigaction sa;
 	sa.sa_handler = recieve_signal;
-	sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+		sigaddset(&sa.sa_mask, SIGUSR1);
+sigaddset(&sa.sa_mask, SIGUSR2);
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
 	i = 0;

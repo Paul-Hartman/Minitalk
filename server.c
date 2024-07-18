@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 16:48:17 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/16 18:18:36 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/18 18:56:53 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,33 +14,47 @@
 
 char *reallocate(char *old_str, int len)
 {
-
 	char *new_str;
 	new_str = malloc(len);
-	memcpy(new_str, old_str, strlen(old_str));
-	free(old_str);
+	if (!new_str)
+    {
+        ft_printf("Error allocating memory\n");
+        exit(1);
+    }
+	if(old_str)
+	{
+		memcpy(new_str, old_str, strlen(old_str));
+		free(old_str);
+	}
+	else
+		new_str[0] = '\0';
+	
 	return (new_str);
 }
 
-void signal_handler(int signum)
+void signal_handler(int signum, siginfo_t *info, void *context)
 {
-	static int bits_received = 0;
-	static unsigned char character = 0;
+	static int bits_received;
+	static unsigned char character;
 	static char *str = NULL;
-	static int len = 0;
-
-	if (signum == SIGUSR1)
+	static int len;
+	(void)context;
+	
+	if (signum == SIGUSR1 || signum == SIGUSR2)
 	{
+		
 		character <<= 1;
-		character |= 1;
+		if (signum == SIGUSR1)
+			character |= 1;
+		usleep(300);
+		//printf("Signal received from %d\n", info->si_pid);
+		kill(info->si_pid, SIGUSR1);
+		bits_received++;
 	}
-	else if (signum == SIGUSR2)
-		character <<= 1;
-
-	bits_received++;
 	if (bits_received == 8)
 	{
-		str = realloc(str, len + 2); // allocate space for the new character and the null terminator
+		str = reallocate(str, len + 2);
+		printf("%c", character);
 		if (!str)
 		{
 			ft_printf("Error allocating memory\n");
@@ -66,15 +80,13 @@ int main(void)
 {
 	struct sigaction sa;
 	ft_printf("%d\n", getpid());
-	sa.sa_handler = signal_handler;
-	sa.sa_flags = 0;
-    sigemptyset(&sa.sa_mask);
-	sigaddset(&sa.sa_mask, SIGUSR1);
-	sigaddset(&sa.sa_mask, SIGUSR2);
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART | SA_SIGINFO;
+    sa.sa_sigaction = signal_handler;
+	//sigaddset(&sa.sa_mask, SIGUSR1);
+	//sigaddset(&sa.sa_mask, SIGUSR2);
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
-	
-
 	while(1)
 	{
 		pause();

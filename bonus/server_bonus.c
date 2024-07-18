@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 18:27:55 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/16 17:33:05 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/18 16:46:26 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,12 +61,12 @@ int main(void)
 	sa.sa_sigaction = signal_handler;
 	sa.sa_flags = SA_SIGINFO;
     sigemptyset(&sa.sa_mask);
-
+	sigaddset(&sa.sa_mask, SIGUSR1);
+	sigaddset(&sa.sa_mask, SIGUSR2);
 	sigaction(SIGUSR2, &sa, NULL);
 	sigaction(SIGUSR1, &sa, NULL);
 	
-	sigaddset(&sa.sa_mask, SIGUSR1);
-sigaddset(&sa.sa_mask, SIGUSR2);
+
 	while(1)
 	{
 		pause();

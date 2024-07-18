@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 18:25:26 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/16 17:31:39 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/18 17:16:05 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,11 +43,12 @@ int send_signal(int pid, unsigned char c)
 		}
 
 	
-		while(!signal_received && timeout <= 600)
+		while(!signal_received && timeout < 600)
 		{
 			usleep(100);
-			timeout += 100;
+			timeout+=100;
 		}
+
 
 		if(!signal_received || valid == -1 || timeout > 600)
 		{
@@ -58,6 +59,8 @@ int send_signal(int pid, unsigned char c)
 	}
 	return (0);
 }
+
+int 
 
 void recieve_signal(int signum)
 {
@@ -89,8 +92,8 @@ int	main(int argc, char const *argv[])
 	struct sigaction sa;
 	sa.sa_handler = recieve_signal;
     sigemptyset(&sa.sa_mask);
-		sigaddset(&sa.sa_mask, SIGUSR1);
-sigaddset(&sa.sa_mask, SIGUSR2);
+	sigaddset(&sa.sa_mask, SIGUSR1);
+	sigaddset(&sa.sa_mask, SIGUSR2);
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
 	i = 0;
@@ -105,6 +108,7 @@ sigaddset(&sa.sa_mask, SIGUSR2);
 
 	while(msg[i])
 	{
+		
 		valid = send_signal(server_pid, (unsigned char)msg[i]);
 		if(valid == 1)
 		{

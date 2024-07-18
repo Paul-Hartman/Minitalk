@@ -6,17 +6,22 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 14:47:40 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/16 18:23:46 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/18 18:39:49 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
+
+volatile sig_atomic_t g_signal_received = 0;
 
 int send_signal(int pid, unsigned char c)
 {
 	int	i;
 	int bit;
 	int valid;
+	int timeout;
+	
+	timeout = 0;
 
 	valid = true;
 	i = 7;
@@ -27,15 +32,35 @@ int send_signal(int pid, unsigned char c)
 			valid = kill(pid, SIGUSR1);
 		else if (bit == 0)
 			valid = kill(pid, SIGUSR2);
-		usleep(100);
 		if(valid == -1)
 		{
 			ft_printf("Error sending signal\n");
 			exit(1);
 		}
+		while(!g_signal_received)
+		{
+			usleep(100);
+			timeout+=100;
+			if(timeout > 1000)
+			{
+				ft_printf("No response received\n");
+				exit(1);
+			}
+		}
+		timeout = 0;
+		
+		g_signal_received = 0;
 		i--;
 	}
 	return (0);
+}
+
+void signal_handler(int signum, siginfo_t *info, void *context)
+{
+	(void)context;
+	(void)info;
+	if (signum == SIGUSR1)
+		g_signal_received = 1;
 }
 
 int	main(int argc, char const *argv[])
@@ -43,6 +68,12 @@ int	main(int argc, char const *argv[])
 	int server_pid;
 	const char *msg;
 	int i;
+	struct sigaction sa;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART | SA_SIGINFO;
+    sa.sa_sigaction = signal_handler;
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
 
 	i = 0;
 

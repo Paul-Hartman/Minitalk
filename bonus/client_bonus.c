@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 18:25:26 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/18 17:16:05 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/22 19:18:34 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,35 @@ int send_signal(int pid, unsigned char c)
 	return (0);
 }
 
-int 
+int ** char_to_bin(char c)
+{
+	int **bin;
+	int byte_ct;
+	int bit_ct;
+	int i;
+
+	bin = (int **)malloc(sizeof(int *) * 8);
+	if (!bin)
+		return (NULL);
+	i = 0;
+	while (i < 8)
+	{
+		bin[i] = (int *)malloc(sizeof(int) * 8);
+		if (!bin[i])
+			return (NULL);
+		j = 0;
+		while (j < 8)
+		{
+			bin[i][j] = (c >> j) & 1;
+			j++;
+		}
+		i++;
+	}
+	return (bin);
+
+
+
+}
 
 void recieve_signal(int signum)
 {

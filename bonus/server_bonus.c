@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 18:27:55 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/18 16:46:26 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/22 19:25:44 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,8 @@ void signal_handler(int signum, siginfo_t *info, void *context)
 	}
 	
 }
+
+
 
 int main(void)
 {

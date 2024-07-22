@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 14:47:40 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/18 18:39:49 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/22 18:45:20 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,7 @@ int send_signal(int pid, unsigned char c)
 	int	i;
 	int bit;
 	int valid;
-	int timeout;
-	
-	timeout = 0;
+	int timeout = 0;
 
 	valid = true;
 	i = 7;
@@ -39,9 +37,10 @@ int send_signal(int pid, unsigned char c)
 		}
 		while(!g_signal_received)
 		{
+			//pause();
 			usleep(100);
 			timeout+=100;
-			if(timeout > 1000)
+			if(timeout > 1000000)
 			{
 				ft_printf("No response received\n");
 				exit(1);
@@ -72,6 +71,8 @@ int	main(int argc, char const *argv[])
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART | SA_SIGINFO;
     sa.sa_sigaction = signal_handler;
+	sigaddset(&sa.sa_mask, SIGUSR1);
+	sigaddset(&sa.sa_mask, SIGUSR2);
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
 

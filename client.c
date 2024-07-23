@@ -6,13 +6,26 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 14:47:40 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/22 20:00:57 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/23 14:36:56 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
 volatile sig_atomic_t	g_signal_received = 0;
+
+void	pick_signal(int pid, int bit)
+{
+	int	valid;
+
+	valid = 0;
+	if (bit == 1)
+		valid = kill(pid, SIGUSR1);
+	else if (bit == 0)
+		valid = kill(pid, SIGUSR2);
+	if (valid == -1)
+		error("Error sending signal");
+}
 
 void	send_signal(int pid, unsigned char c)
 {
@@ -21,29 +34,17 @@ void	send_signal(int pid, unsigned char c)
 	int	timeout;
 
 	timeout = 0;
-	valid = 0;
 	i = 7;
 	while (i >= 0)
 	{
 		bit = (c >> i--) & 1;
-		if (bit == 1)
-			valid = kill(pid, SIGUSR1);
-		else if (bit == 0)
-			valid = kill(pid, SIGUSR2);
-		if (valid == -1)
-		{
-			ft_printf("Error sending signal\n");
-			exit(1);
-		}
+		pick_signal(pid, bit);
 		while (!g_signal_received)
 		{
 			usleep(100);
 			timeout += 100;
 			if (timeout > 1000000)
-			{
-				ft_printf("No response received\n");
-				exit(1);
-			}
+				error("No response received from server");
 		}
 		timeout = 0;
 		g_signal_received = 0;

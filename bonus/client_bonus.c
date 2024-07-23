@@ -6,145 +6,83 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 18:25:26 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/22 19:18:34 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/23 15:09:37 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minitalk.h"
 
+volatile sig_atomic_t	g_signal_received = 0;
 
-volatile sig_atomic_t signal_received = 0;
+void	pick_signal(int pid, int bit)
+{
+	int	valid;
 
-int send_signal(int pid, unsigned char c)
+	valid = 0;
+	if (bit == 1)
+		valid = kill(pid, SIGUSR1);
+	else if (bit == 0)
+		valid = kill(pid, SIGUSR2);
+	if (valid == -1)
+		error("Error sending signal");
+}
+
+void	send_signal(int pid, unsigned char c)
 {
 	int	i;
-	int bit;
-	int valid;
-	int timeout;
+	int	bit;
+	int	timeout;
 
 	timeout = 0;
-	valid = true;
 	i = 7;
 	while (i >= 0)
 	{
-		signal_received = 0;
-		timeout = 0;
-
-		bit = (c >> i) & 1;
-		if(bit == 1)
-		{
-			kill(pid, SIGUSR1);
-
-		}
-			
-		else if (bit == 0)
-		{
-			kill(pid, SIGUSR2);
-		}
-
-	
-		while(!signal_received && timeout < 600)
+		bit = (c >> i--) & 1;
+		pick_signal(pid, bit);
+		while (!g_signal_received)
 		{
 			usleep(100);
-			timeout+=100;
+			timeout += 100;
+			if (timeout > 1000000)
+				error("No response received from server");
 		}
-
-
-		if(!signal_received || valid == -1 || timeout > 600)
-		{
-			ft_printf("Error sending signal\n");
-			exit(1);
-		}
-		i--;
+		timeout = 0;
+		g_signal_received = 0;
 	}
-	return (0);
 }
 
-int ** char_to_bin(char c)
+void	signal_handler(int signum)
 {
-	int **bin;
-	int byte_ct;
-	int bit_ct;
-	int i;
-
-	bin = (int **)malloc(sizeof(int *) * 8);
-	if (!bin)
-		return (NULL);
-	i = 0;
-	while (i < 8)
+	if (signum == SIGUSR1)
 	{
-		bin[i] = (int *)malloc(sizeof(int) * 8);
-		if (!bin[i])
-			return (NULL);
-		j = 0;
-		while (j < 8)
-		{
-			bin[i][j] = (c >> j) & 1;
-			j++;
-		}
-		i++;
+		ft_printf("Signal received\n");
+		g_signal_received = 1;
 	}
-	return (bin);
-
-
-
-}
-
-void recieve_signal(int signum)
-{
-	if(signum == SIGUSR1)
-	{
-		ft_printf("1");
-		signal_received = 1;
 		
-		return;
-	}
-
-	else if(signum == SIGUSR2)
-	{
-		ft_printf("0");
-		signal_received = 1;
-
-		return;
-	}
-	signal_received = 0;
 }
-
 
 int	main(int argc, char const *argv[])
 {
-	int server_pid;
-	const char *msg;
-	int i;
-	int valid;
-	struct sigaction sa;
-	sa.sa_handler = recieve_signal;
-    sigemptyset(&sa.sa_mask);
-	sigaddset(&sa.sa_mask, SIGUSR1);
-	sigaddset(&sa.sa_mask, SIGUSR2);
-	sigaction(SIGUSR1, &sa, NULL);
-	sigaction(SIGUSR2, &sa, NULL);
-	i = 0;
+	int					server_pid;
+	int					i;
+	const char			*msg;
+	struct sigaction	sa;
 
-	if (argc != 3)
+	if (argc == 3)
 	{
-		ft_printf("wrong number of args\n");
-		return 1;
+		sigemptyset(&sa.sa_mask);
+		sa.sa_flags = SA_RESTART | SA_SIGINFO;
+		sa.sa_handler = signal_handler;
+		sigaddset(&sa.sa_mask, SIGUSR1);
+		sigaction(SIGUSR1, &sa, NULL);
+		i = 0;
+		server_pid = ft_atoi(argv[1]);
+		msg = argv[2];
+		while (msg[i])
+			send_signal(server_pid, (unsigned char)msg[i++]);
+		send_signal(server_pid, '\0');
 	}
-	server_pid = ft_atoi(argv[1]);
-	msg = argv[2];
-
-	while(msg[i])
-	{
-		
-		valid = send_signal(server_pid, (unsigned char)msg[i]);
-		if(valid == 1)
-		{
-			ft_printf("Error sending signal\n");
-			return 1;
-		}
-		i++;
-	}
-	send_signal(server_pid, '\0');
+	else
+		ft_printf("Wrong number of arguments\n");
 	return (0);
 }

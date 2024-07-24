@@ -6,7 +6,7 @@
 #    By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/07/03 14:56:36 by phartman          #+#    #+#              #
-#    Updated: 2024/07/10 19:05:01 by phartman         ###   ########.fr        #
+#    Updated: 2024/07/24 19:02:26 by phartman         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -17,7 +17,7 @@ CLIENT_SRCS := client.c
 SERVER_SRCS := server.c
 CLIENT_SRCS_BONUS := bonus/client_bonus.c
 SERVER_SRCS_BONUS := bonus/server_bonus.c
-HEADERS := minitalk.h
+HEADERS := -I./minitalk.h
 
 LIBFT := ./ft_printf/libftprintf.a
 CLIENT_OBJS := $(CLIENT_SRCS:.c=.o)

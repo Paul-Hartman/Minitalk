@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 16:48:17 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/23 15:07:28 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/24 19:25:24 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ char	*reallocate(char *old_str, int len)
 }
 
 void	decode_char(int signum, siginfo_t *info, unsigned char *character,
-		int *bits_received)
+		int *bits_received, int *len, char **str)
 {
 	int	valid;
 
@@ -47,8 +47,16 @@ void	decode_char(int signum, siginfo_t *info, unsigned char *character,
 		if (signum == SIGUSR1)
 			*character |= 1;
 		valid = kill(info->si_pid, SIGUSR1);
+		ft_printf("Received signal %d\n", valid);
 		if (valid == -1)
+		{
+			*len = 0;
+			free(*str);
+			*str = NULL;
+			*bits_received = 0;
+			*character = 0;
 			error("Error sending signal");
+		}
 		(*bits_received)++;
 	}
 }
@@ -61,7 +69,7 @@ void	signal_handler(int signum, siginfo_t *info, void *context)
 	static int				len;
 
 	(void)context;
-	decode_char(signum, info, &character, &bits_received);
+	decode_char(signum, info, &character, &bits_received, &len, &str);
 	if (bits_received == 8)
 	{
 		if (character == '\0')

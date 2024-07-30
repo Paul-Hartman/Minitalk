@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 16:48:17 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/30 21:09:07 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/30 22:54:56 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,22 +21,6 @@ void	error(char *message)
 	exit(1);
 }
 
-char	*reallocate(char *old_str, int len)
-{
-	char	*new_str;
-
-	new_str = malloc(len);
-	if (!new_str)
-		error("Error allocating memory");
-	if (old_str)
-	{
-		ft_memcpy(new_str, old_str, ft_strlen(old_str));
-		free(old_str);
-	}
-	else
-		new_str[0] = '\0';
-	return (new_str);
-}
 
 void	add_to_string(unsigned char character)
 {
@@ -143,7 +127,7 @@ void	signal_handler(int signum, siginfo_t *info, void *context)
 		g_str = NULL;
 		bits_received = 0;
 		character = 0;
-		ft_printf("Error: client interuppted\n");
+		ft_putstr_fd("Error: client interuppted\n", 2);
 	}
 }
 

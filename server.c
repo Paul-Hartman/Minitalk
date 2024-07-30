@@ -6,14 +6,14 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 16:48:17 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/26 17:20:12 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/30 21:09:07 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
 char *g_str = NULL;
-int timeout;
+//int timeout;
 
 void	error(char *message)
 {
@@ -38,12 +38,21 @@ char	*reallocate(char *old_str, int len)
 	return (new_str);
 }
 
-int	add_to_string(unsigned char character, int client_pid)
+void	add_to_string(unsigned char character)
 {
 	static unsigned char buffer[1024];
 	static int buffer_index = 0;
 	char *temp;
 
+	if (character == 255) {
+        buffer_index = 0;
+        memset(buffer, 0, sizeof(buffer));
+        if (g_str) {
+            free(g_str);
+            g_str = NULL;
+        }
+        return;
+    }
 	if(character == '\0' || buffer_index == sizeof(buffer)-1)
 	{
 		buffer[buffer_index] = '\0';
@@ -58,7 +67,6 @@ int	add_to_string(unsigned char character, int client_pid)
 		}
 		else
 		{
-		
 			g_str = ft_strdup((const char*)buffer);
 			if (!g_str)
 				error("Error allocating memory");
@@ -74,17 +82,12 @@ int	add_to_string(unsigned char character, int client_pid)
 		}
 	}
 	else
-		buffer[buffer_index++] = character;
-		return 0;
-	if(kill(client_pid, 0) == -1)
 	{
-		free(g_str);
-		buffer_index = 0;
-        memset(buffer, 0, sizeof(buffer));
-		g_str = NULL;
-		return 1;
+		buffer[buffer_index++] = character;
+		return ;
 	}
 }
+
 
 
 void	signal_handler(int signum, siginfo_t *info, void *context)
@@ -92,12 +95,15 @@ void	signal_handler(int signum, siginfo_t *info, void *context)
 	int	valid;
 	static unsigned char	character;
 	static int				bits_received;
+	static int one_counter = 0; 
 
 	(void)context;
 	valid = 0;
 	
 	if (signum == SIGUSR1 || signum == SIGUSR2)
 	{
+		
+		
 		character <<= 1;
 		if (signum == SIGUSR1)
 			character |= 1;
@@ -108,26 +114,36 @@ void	signal_handler(int signum, siginfo_t *info, void *context)
 			g_str = NULL;
 			bits_received = 0;
 			character = 0;
-			error("Error sending signal");
+			error("Error sending return signal");
 		}
 		bits_received++;
-		timeout = 0;
+		
 		if (bits_received == 8)
 		{
-			add_to_string(character, info->si_pid);
+			add_to_string(character);
 			character = 0;
 			bits_received = 0;
 			
 		}
-		if (kill(info->si_pid, 0) == -1)
+		if(signum == SIGUSR1)
 		{
-			free(g_str);
-			g_str = NULL;
-			bits_received = 0;
-			character = 0;
-			error("Error sending signal");
+			one_counter++;
+
+		}
+		else
+		{
+			one_counter = 0;
 		}
 		
+		
+	}
+	if(one_counter == 24 && bits_received != 0)
+	{
+		free(g_str);
+		g_str = NULL;
+		bits_received = 0;
+		character = 0;
+		ft_printf("Error: client interuppted\n");
 	}
 }
 
@@ -189,9 +205,9 @@ void	signal_handler(int signum, siginfo_t *info, void *context)
 int	main(void)
 {
 	struct sigaction	sa;
-	int timeout;
+	//int timeout;
 
-	timeout = 0;
+	//timeout = 0;
 	ft_printf("%d\n", getpid());
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART | SA_SIGINFO;

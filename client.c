@@ -6,7 +6,7 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 14:47:40 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/24 19:25:49 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/30 21:07:31 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,11 +45,11 @@ void	send_signal(int pid, unsigned char c)
 		pick_signal(pid, bit);
 		while (!g_signal_received)
 		{
-			pause();
-			// usleep(100);
-			// timeout += 100;
-			// if (timeout > 1000000)
-			// 	error("No response received from server");
+			//pause();
+			 usleep(100);
+			 timeout += 100;
+			 if (timeout > 1000000)
+			 	error("No response received from server");
 		}
 		timeout = 0;
 		g_signal_received = 0;
@@ -79,6 +79,9 @@ int	main(int argc, char const *argv[])
 		i = 0;
 		server_pid = ft_atoi(argv[1]);
 		msg = argv[2];
+		send_signal(server_pid, 255);
+		send_signal(server_pid, 255);
+		send_signal(server_pid, 255);
 		while (msg[i])
 			send_signal(server_pid, (unsigned char)msg[i++]);
 		send_signal(server_pid, '\0');

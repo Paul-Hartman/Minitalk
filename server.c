@@ -6,14 +6,13 @@
 /*   By: phartman <phartman@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 16:48:17 by phartman          #+#    #+#             */
-/*   Updated: 2024/07/30 22:54:56 by phartman         ###   ########.fr       */
+/*   Updated: 2024/07/31 02:06:59 by phartman         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-char *g_str = NULL;
-//int timeout;
+
 
 void	error(char *message)
 {
@@ -21,47 +20,77 @@ void	error(char *message)
 	exit(1);
 }
 
+// void	process_buffer(unsigned char *buffer, int *buffer_index,
+// 	char **str, unsigned char character)
+// {
+// 	char	*temp;
+
+// 	buffer[*buffer_index] = '\0';
+// 	if (*str != NULL)
+// 	{
+// 		temp = *str;
+// 		*str = ft_strjoin(*str, (const char *)buffer);
+// 		free(temp);
+// 		temp = NULL;
+// 	}
+// 	else
+// 		*str = ft_strdup((const char *)buffer);
+// 	if (!*str)
+// 		error("Error allocating memory");
+// 	*buffer_index = 0;
+// 	memset(buffer, 0, BUFFER_SIZE);
+// 	if (character == END)
+// 	{
+// 		ft_printf("%s\n", *str);
+// 		free(*str);
+// 		str = NULL;
+// 		return ;
+// 	}
+// }
 
 void	add_to_string(unsigned char character)
 {
-	static unsigned char buffer[1024];
-	static int buffer_index = 0;
-	char *temp;
+	static unsigned char	buffer[BUFFER_SIZE];
+	static int				buffer_index;
+	static char				*str;
+	char					*temp;
 
-	if (character == 255) {
-        buffer_index = 0;
-        memset(buffer, 0, sizeof(buffer));
-        if (g_str) {
-            free(g_str);
-            g_str = NULL;
-        }
-        return;
-    }
-	if(character == '\0' || buffer_index == sizeof(buffer)-1)
+	if (character == BEGIN)
+	{
+		buffer_index = 0;
+		memset(buffer, 0, BUFFER_SIZE);
+		if (str)
+		{
+			free(str);
+			str = NULL;
+		}
+		return ;
+	}
+	if (character == END || buffer_index == BUFFER_SIZE - 1)
 	{
 		buffer[buffer_index] = '\0';
-		temp = g_str;
-		if(g_str != NULL)
+		temp = str;
+		if(str != NULL)
 		{
-			temp = g_str;
-			g_str = ft_strjoin(g_str, (const char*)buffer);
-			if (!g_str)
+			temp = str;
+			str = ft_strjoin(str, (const char*)buffer);
+			if (!str)
 				error("Error reallocating memory");
 			free(temp);
 		}
 		else
 		{
-			g_str = ft_strdup((const char*)buffer);
-			if (!g_str)
+			str = ft_strdup((const char*)buffer);
+			if (!str)
 				error("Error allocating memory");
 		}
 		buffer_index = 0;
         memset(buffer, 0, sizeof(buffer));
-		if (character == '\0')
+		if (character == END)
 		{
-			ft_printf("%s\n", g_str);
-			free(g_str);
-			g_str = NULL;
+			ft_printf("%s\n", str);
+			free(str);
+			str = NULL;
 			return ;
 		}
 	}
@@ -72,126 +101,39 @@ void	add_to_string(unsigned char character)
 	}
 }
 
-
-
 void	signal_handler(int signum, siginfo_t *info, void *context)
 {
-	int	valid;
 	static unsigned char	character;
 	static int				bits_received;
-	static int one_counter = 0; 
+	static int				zero_counter;
 
 	(void)context;
-	valid = 0;
-	
-	if (signum == SIGUSR1 || signum == SIGUSR2)
+	character <<= 1;
+	if (signum == SIGUSR1)
 	{
-		
-		
-		character <<= 1;
-		if (signum == SIGUSR1)
-			character |= 1;
-		valid = kill(info->si_pid, SIGUSR1);
-		if (valid == -1)
-		{
-			free(g_str);
-			g_str = NULL;
-			bits_received = 0;
-			character = 0;
-			error("Error sending return signal");
-		}
-		bits_received++;
-		
-		if (bits_received == 8)
-		{
-			add_to_string(character);
-			character = 0;
-			bits_received = 0;
-			
-		}
-		if(signum == SIGUSR1)
-		{
-			one_counter++;
-
-		}
-		else
-		{
-			one_counter = 0;
-		}
-		
-		
+		character |= 1;
+		zero_counter = 0;
 	}
-	if(one_counter == 24 && bits_received != 0)
+	else
+		zero_counter++;
+	kill(info->si_pid, SIGUSR1);
+	if (++bits_received == 8)
 	{
-		free(g_str);
-		g_str = NULL;
+		add_to_string(character);
+		character = 0;
+		bits_received = 0;
+	}
+	if (zero_counter == 24 && bits_received != 0)
+	{
 		bits_received = 0;
 		character = 0;
-		ft_putstr_fd("Error: client interuppted\n", 2);
 	}
 }
-
-
-
-// void	decode_char(int signum, siginfo_t *info, unsigned char *character,
-// 		int *bits_received)
-// {
-// 	int	valid;
-
-// 	valid = 0;
-// 	if (signum == SIGUSR1 || signum == SIGUSR2)
-// 	{
-// 		*character <<= 1;
-// 		if (signum == SIGUSR1)
-// 			*character |= 1;
-// 		valid = kill(info->si_pid, SIGUSR1);
-// 		if (valid == -1)
-// 		{
-// 			free(g_str);
-// 			g_str = NULL;
-// 			*bits_received = 0;
-// 			*character = 0;
-// 			error("Error sending signal");
-// 		}
-// 		(*bits_received)++;
-// 	}
-// }
-
-// void	signal_handler(int signum, siginfo_t *info, void *context)
-// {
-// 	static int				bits_received;
-// 	static unsigned char	character;
-// 	static char				*str = NULL;
-// 	static int				len;
-
-// 	(void)context;
-// 	decode_char(signum, info, &character, &bits_received);
-// 	if (bits_received == 8)
-// 	{
-// 		if (character == '\0')
-// 		{
-// 			ft_printf("%s\n", str);
-// 			free(str);
-// 			str = NULL;
-// 			len = 0;
-// 		}
-// 		else
-// 		{
-// 			str = reallocate(str, len + 2);
-// 			str[len++] = character;
-// 			str[len] = '\0';
-// 		}
-// 		bits_received = 0;
-// 		character = 0;
-// 	}
-// }
 
 int	main(void)
 {
 	struct sigaction	sa;
-	//int timeout;
 
-	//timeout = 0;
 	ft_printf("%d\n", getpid());
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART | SA_SIGINFO;
@@ -201,22 +143,6 @@ int	main(void)
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
 	while (1)
-	{
 		pause();
-		// usleep(100);
-		// timeout += 100;
-		// if (timeout > 1000000)
-		// {
-		// 	//printf("%s", g_str);
-		// 	if(g_str)
-		// 	{
-		// 		free(g_str);
-		// 		g_str = NULL;
-		// 	}
-			
-		// 	timeout = 0;
-		// }
-		
-	}
 	return (0);
 }

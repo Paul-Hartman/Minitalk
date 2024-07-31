@@ -1,0 +1,7 @@
+{
+	"files.associations": {
+		"*.ejs": "html",
+		"ft_printf.h": "c",
+		"stdlib.h": "c"
+	}
+}
